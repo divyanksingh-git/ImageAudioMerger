@@ -6,6 +6,7 @@ import subprocess
 import os
 from tkinter import *
 from tkinter import filedialog
+from tkinter import messagebox
 import cv2
 from multiprocessing import Process
 
@@ -14,7 +15,7 @@ if not os.path.exists("build"):
     
 fileName = str(uuid.uuid4())
 jobs =[]
-
+images = []
 def player():
     path = os.getcwd()
     cap = cv2.VideoCapture(path+'/build/'+fileName+'.mp4')
@@ -27,7 +28,7 @@ def player():
             break  # esc to quit
     cv2.destroyAllWindows()
 
-def imageMerge(images):
+def imageMerge():
     imageData = []
     for temp in images:
         tempData = ImageClip(temp)
@@ -35,6 +36,9 @@ def imageMerge(images):
         imageData.append(tempData)
     video = concatenate(imageData,method="compose")
     video.write_videofile('build/'+fileName+".mp4",fps=30)
+
+    messagebox.showinfo("Info", "Video Created successfully.")
+    
 
 def audioRecorder():
     tempDuration = VideoFileClip('build/'+fileName+".mp4").duration
@@ -61,17 +65,28 @@ def Recorder():
     jobs.append(p2)
     p1.start()
     p2.start()
-    
-def browseFile():
-    filez = filedialog.askopenfilenames(multiple=True)
-    imageMerge(filez)
-    Recorder()
+
     for j in jobs:
         j.join()
     merger()
+    messagebox.showinfo("Info", "Audio recorded successfully and your file is saved in build directory")
+    
+def browseFile():
+    f = filedialog.askopenfilenames(multiple=True)
+    for i in f:
+        images.append(i)
+    
 
 
 root = Tk()
 browse = Button(root,text="Browse",command=browseFile)
 browse.grid(row=0,column=0)
+ir = Button(root,text="Merge Images",command=imageMerge)
+ir.grid(row=0,column=1)
+r = Button(root,text="Record Audio and merge",command=Recorder)
+r.grid(row=0,column=2)
+label1 = Label(text="A message will popup when a process is completed")
+label1.grid(row=1,column=0,columnspan=3)
+label2 = Label(text="It may take time depending on size, quality and quantity of image / images")
+label2.grid(row=2,column=0,columnspan=3)
 root.mainloop()
